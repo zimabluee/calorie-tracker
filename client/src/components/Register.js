@@ -10,7 +10,7 @@ const Register = ({ setToken }) => {
   const onSubmit = async e => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/auth/register', { email, password });
+      const res = await axios.post('https://calorie-tracker-a0im.onrender.com/api/auth/register', { email, password });
       setToken(res.data.token);
       localStorage.setItem('token', res.data.token);
       alert("Account created and logged in!");

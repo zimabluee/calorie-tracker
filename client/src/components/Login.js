@@ -11,7 +11,7 @@ const Login = ({ setToken }) => {
   const onSubmit = async e => {
     e.preventDefault();
     try {
-        const res = await axios.post('http://127.0.0.1:5000/api/auth/login', { email, password });
+        const res = await axios.post('https://calorie-tracker-a0im.onrender.com/api/auth/login', { email, password });
       const receivedToken = res.data.token;
       localStorage.setItem('token', receivedToken);
       setToken(res.data.token);

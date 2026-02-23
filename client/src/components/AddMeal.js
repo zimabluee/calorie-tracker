@@ -7,7 +7,7 @@ const AddMeal = ({ token, onMealAdded, selectedDate }) => {
 
   const performSearch = async (searchTerm) => {
     try {
-      const res = await axios.get(`http://127.0.0.1:5000/api/food/search/${searchTerm}`, {
+      const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/food/search/${searchTerm}`, {
         headers: { 'x-auth-token': token }
       });
       setResults(res.data);
@@ -30,7 +30,7 @@ useEffect(() => {
 
   const selectFood = async (food) => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/meals', {
+      await axios.post('https://calorie-tracker-a0im.onrender.com/api/meals', {
         foodName: food.food.label,
         calories: Math.round(food.food.nutrients.ENERC_KCAL),
         protein: Math.round(food.food.nutrients.PROCNT) || 0,

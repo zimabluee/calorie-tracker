@@ -32,7 +32,7 @@ const Dashboard = ({ token }) => {
 
   const fetchMeals = async () => {
     try {
-      const res = await axios.get(`http://127.0.0.1:5000/api/meals?date=${selectedDate}`, {
+      const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/meals?date=${selectedDate}`, {
         headers: { 'x-auth-token': token }
       });
       setMeals(res.data);
@@ -45,7 +45,7 @@ const Dashboard = ({ token }) => {
 
   const deleteMeal = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/meals/${id}`, {
+      await axios.delete(`https://calorie-tracker-a0im.onrender.com/api/meals/${id}`, {
         headers: { 'x-auth-token': token }
       });
       fetchMeals(); 
