@@ -15,18 +15,29 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // 1. Properly create the hash
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 2. SAVE THE HASHED PASSWORD
     user = new User({
       email,
       password: hashedPassword 
     });
 
     await user.save();
-    res.status(201).json({ message: 'User registered successfully!' });
+
+    // Generate token so they are logged in immediately
+    const payload = { userId: user.id, email: user.email }; 
+    const token = jwt.sign(
+      payload, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+
+    res.status(201).json({ 
+      token, 
+      message: 'User registered successfully!',
+      email: user.email 
+    });
 
   } catch (err) {
     console.error(err.message);
@@ -49,7 +60,8 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid Credentials' });
     }
 
-    const payload = { userId: user.id, email: user.email }; // Added the email  
+    // Email for the frontend to display
+    const payload = { userId: user.id, email: user.email }; 
     const token = jwt.sign(
       payload, 
       process.env.JWT_SECRET, 
@@ -60,23 +72,6 @@ router.post('/login', async (req, res) => {
 
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   PUT /api/auth/goals
-// @desc    Update user calorie goals
-router.put('/goals', auth, async (req, res) => {
-  const { minCalories, maxCalories } = req.body;
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.user, 
-      { $set: { minCalories, maxCalories } },
-      { new: true }
-    ).select('-password'); 
-    
-    res.json(user);
-  } catch (err) {
     res.status(500).send('Server Error');
   }
 });

@@ -9,7 +9,7 @@ const CalorieChart = ({ data }) => {
 
   return (
     <div style={{ width: '100%', height: '300px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Calorie Trend (Current View)</h4>
+      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Calorie Trend</h4>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -62,13 +62,14 @@ const Dashboard = ({ token }) => {
   };
 
   useEffect(() => {
-    if (token) {
+    const currentToken = token || localStorage.getItem('token');
+    
+    if (currentToken) {
       try {
-        const decoded = jwtDecode(token);
-        // Only works if backend includes email in payload
+        const decoded = jwtDecode(currentToken);
         setUserEmail(decoded.email || 'User'); 
       } catch (err) {
-        console.error("Invalid token format");
+        console.error("Token decoding failed:", err);
       }
       fetchMeals();
     }
@@ -102,7 +103,7 @@ const Dashboard = ({ token }) => {
 
       <CalorieChart data={chartData} />
 
-      {/* 3. Goal Section */}
+      {/* 3. Goal Summary */}
       <div style={{ backgroundColor: isOver ? '#ffebee' : '#e8f5e9', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `2px solid ${isOver ? '#ef5350' : '#66bb6a'}`, marginBottom: '20px' }}>
         {!isEditingGoal ? (
           <div onClick={() => setIsEditingGoal(true)} style={{ cursor: 'pointer' }}>
