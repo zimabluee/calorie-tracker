@@ -7,9 +7,10 @@ const CalorieChart = ({ data }) => {
   if (!data || data.length === 0) return null;
 
   return (
-    <div style={{ width: '100%', height: '250px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+    <div style={{ width: '100%', height: '300px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
       <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Calorie Trend (Current View)</h4>
-      <ResponsiveContainer width="100%" height="100%">
+      {/* FIX: Use a fixed height for ResponsiveContainer inside a div */}
+      <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
@@ -50,7 +51,7 @@ const Dashboard = ({ token }) => {
       });
       fetchMeals(); 
     } catch (err) {
-      console.error("Delete Error:", err.response);
+      alert(err.response?.data?.msg || "Error deleting meal");
     }
   };
 
@@ -60,12 +61,11 @@ const Dashboard = ({ token }) => {
   };
 
   useEffect(() => {
-    fetchMeals();
+    if (token) fetchMeals();
   }, [token, selectedDate]);
 
-  // 2. PREPARE CHART DATA (Mapping meals to chart format)
-  const chartData = meals.map((meal, index) => ({
-    name: meal.foodName.substring(0, 8), // Shorten name for X-axis
+  const chartData = meals.map((meal) => ({
+    name: meal.foodName.substring(0, 8),
     calories: meal.calories
   }));
 
@@ -76,17 +76,13 @@ const Dashboard = ({ token }) => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '20px auto', padding: '0 20px', fontFamily: 'Arial' }}>
-      
-      {/* DATE PICKER */}
       <div style={{ marginBottom: '20px', textAlign: 'center', backgroundColor: '#fff', padding: '15px', borderRadius: '8px' }}>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>View Date:</label>
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
       </div>
 
-      {/* THE CHART COMPONENT CALL */}
       <CalorieChart data={chartData} />
 
-      {/* CALORIE SUMMARY */}
       <div style={{ backgroundColor: isOver ? '#ffebee' : '#e8f5e9', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `2px solid ${isOver ? '#ef5350' : '#66bb6a'}`, marginBottom: '20px' }}>
         {!isEditingGoal ? (
           <div onClick={() => setIsEditingGoal(true)} style={{ cursor: 'pointer' }}>
@@ -104,20 +100,21 @@ const Dashboard = ({ token }) => {
       <h3 style={{ borderBottom: '2px solid #333' }}>Add Food</h3>
       <AddMeal token={token} onMealAdded={fetchMeals} selectedDate={selectedDate} />
 
-      <h3 style={{ marginTop: '30px' }}>Today's Log</h3>
+      <h3 style={{ marginTop: '30px' }}>Log</h3>
       <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
         {meals.length > 0 ? (
           meals.map(meal => (
             <div key={meal._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', borderBottom: '1px solid #eee' }}>
               <div>
-                <span style={{ display: 'block', fontWeight: '500' }}>{meal.foodName}</span>
-                <small style={{ color: '#888' }}>{meal.calories} kcal | P: {meal.protein || 0}g</small>
+                <span style={{ fontWeight: '500' }}>{meal.foodName}</span>
+                <br />
+                <small style={{ color: '#888' }}>{meal.calories} kcal</small>
               </div>
               <button onClick={() => deleteMeal(meal._id)} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer' }}>Delete</button>
             </div>
           ))
         ) : (
-          <p style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No meals logged for this date.</p>
+          <p style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No meals logged.</p>
         )}
       </div>
     </div>
