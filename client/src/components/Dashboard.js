@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode'; 
 import axios from 'axios';
-import AddMeal from './AddMeal'; 
+import AddMeal from './AddMeal';  
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CalorieChart = ({ data }) => {
@@ -9,7 +10,6 @@ const CalorieChart = ({ data }) => {
   return (
     <div style={{ width: '100%', height: '300px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
       <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Calorie Trend (Current View)</h4>
-      {/* FIX: Use a fixed height for ResponsiveContainer inside a div */}
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -24,6 +24,7 @@ const CalorieChart = ({ data }) => {
 };
 
 const Dashboard = ({ token }) => {
+  const [userEmail, setUserEmail] = useState('');
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [calorieGoal, setCalorieGoal] = useState(2000);
@@ -61,7 +62,16 @@ const Dashboard = ({ token }) => {
   };
 
   useEffect(() => {
-    if (token) fetchMeals();
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        // Only works if backend includes email in payload
+        setUserEmail(decoded.email || 'User'); 
+      } catch (err) {
+        console.error("Invalid token format");
+      }
+      fetchMeals();
+    }
   }, [token, selectedDate]);
 
   const chartData = meals.map((meal) => ({
@@ -76,13 +86,23 @@ const Dashboard = ({ token }) => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '20px auto', padding: '0 20px', fontFamily: 'Arial' }}>
-      <div style={{ marginBottom: '20px', textAlign: 'center', backgroundColor: '#fff', padding: '15px', borderRadius: '8px' }}>
+      
+      {/* 1. Logged in Status */}
+      <div style={{ textAlign: 'right', marginBottom: '10px' }}>
+        <span style={{ fontSize: '0.9rem', color: '#666', fontStyle: 'italic' }}>
+          Logged in as: <strong>{userEmail}</strong>
+        </span>
+      </div>
+
+      {/* 2. Date Picker */}
+      <div style={{ marginBottom: '20px', textAlign: 'center', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>View Date:</label>
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
       </div>
 
       <CalorieChart data={chartData} />
 
+      {/* 3. Goal Section */}
       <div style={{ backgroundColor: isOver ? '#ffebee' : '#e8f5e9', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `2px solid ${isOver ? '#ef5350' : '#66bb6a'}`, marginBottom: '20px' }}>
         {!isEditingGoal ? (
           <div onClick={() => setIsEditingGoal(true)} style={{ cursor: 'pointer' }}>

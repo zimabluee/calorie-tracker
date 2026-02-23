@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid Credentials' });
     }
 
-    const payload = { userId: user.id };
+    const payload = { userId: user.id, email: user.email }; // Added the email  
     const token = jwt.sign(
       payload, 
       process.env.JWT_SECRET, 
