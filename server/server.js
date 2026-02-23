@@ -33,6 +33,4 @@ app.get('/', (req, res) => {
 
 // 3. Start the Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is humming along on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log('Server running'));
