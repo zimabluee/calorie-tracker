@@ -1,3 +1,8 @@
+/**
+ * @route   DELETE /api/meals/:id
+ * @description    Delete a specific meal entry
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth'); 
@@ -5,6 +10,7 @@ const Meal = require('../models/Meal');
 
 router.post('/', auth, async (req, res) => {
   try {
+    
     const { foodName, calories, protein, carbs, fat, date } = req.body; 
     const newMeal = new Meal({
       user: req.user.id, 
@@ -15,6 +21,7 @@ router.post('/', auth, async (req, res) => {
       fat: fat || 0,
       date: date || Date.now()
     });
+    
     const meal = await newMeal.save();
     res.json(meal);
   } catch (err) {
@@ -42,13 +49,19 @@ router.get('/', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
+    
+    // 1. Find the meal ID
     const meal = await Meal.findById(req.params.id);
+    
+    // 2. Check if the meal exists
     if (!meal) return res.status(404).json({ msg: 'Meal not found' });
-
+    
+    // 3. Verify owner of the meal
     if (!meal.user || meal.user.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'User not authorized to delete this meal' });
     }
 
+    // 4. Perform the deletion
     await Meal.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Meal removed' });
   } catch (err) {

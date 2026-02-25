@@ -1,3 +1,7 @@
+/**
+ * @component Register
+ * @description Allows a new user creation and automatically logs in.
+ */
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -10,10 +14,10 @@ const Register = ({ setToken }) => {
   const onSubmit = async e => {
     e.preventDefault();
     try {
+      // POST request to create a new user record in MongoDB
       const res = await axios.post('https://calorie-tracker-a0im.onrender.com/api/auth/register', { email, password });
-      
-      localStorage.setItem('token', res.data.token);
-     
+      // UI improvement: Auto-Login
+      localStorage.setItem('token', res.data.token);     
       setToken(res.data.token);
       
       alert("Registration successful! Welcome.");

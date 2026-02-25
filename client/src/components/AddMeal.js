@@ -1,3 +1,8 @@
+/**
+ * @component AddMeal
+ * @description The form used to log new meals.
+ */
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -7,6 +12,7 @@ const AddMeal = ({ token, onMealAdded, selectedDate }) => {
 
   const performSearch = async (searchTerm) => {
     try {
+      //Send the food detail and selected date
       const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/food/search/${searchTerm}`, {
         headers: { 'x-auth-token': token }
       });

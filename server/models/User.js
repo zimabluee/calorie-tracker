@@ -1,3 +1,7 @@
+/**
+ * @model User
+ * @description Defines the User schema for MongoDB.
+ */
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -9,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  },
+  }, 
   dailyCalorieGoal: {
     type: Number,
     default: 2000, // A default goal to start with

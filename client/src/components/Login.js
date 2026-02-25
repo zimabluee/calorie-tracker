@@ -1,7 +1,12 @@
+/**
+ * @component Login
+ * @description Handles user authentication by verifying credentials in the backend.
+ */
 import React, { useState } from 'react';
 import axios from 'axios';
 
 const Login = ({ setToken }) => {
+  // Local state for the login form inputs
   const [formData, setFormData] = useState({ email: '', password: '' });
 
   const { email, password } = formData;
@@ -9,11 +14,12 @@ const Login = ({ setToken }) => {
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const onSubmit = async e => {
-    e.preventDefault();
+    e.preventDefault(); // Stop the page from refreshing
     try {
-        const res = await axios.post('https://calorie-tracker-a0im.onrender.com/api/auth/login', { email, password });
+      const res = await axios.post('https://calorie-tracker-a0im.onrender.com/api/auth/login', { email, password });
       const receivedToken = res.data.token;
       localStorage.setItem('token', receivedToken);
+      //Send email and password to App.js
       setToken(res.data.token);
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed. Check credentials.";

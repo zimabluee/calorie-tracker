@@ -1,14 +1,21 @@
+/**
+ * @file App.js
+ * @description Main component that manages whether to show the Login/Register screen
+ */
+
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 
-/* Main Application Component */
 function App() {
+  // Initialize token to keep user logged in on page refresh
   const [token, setToken] = useState(localStorage.getItem('token'));
+  
+  // Switch between Login and Register views
   const [showRegister, setShowRegister] = useState(false);
 
-  // sync if the token changes
+  // Sync if the token changes
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -35,7 +42,7 @@ function App() {
     );
   }
 
-  // 2. If not logged in, show the Register page
+  // 2. If user is not logged in, show the Register page
   return (
     <div style={styles.authWrapper}>
       <header style={{ marginBottom: '30px' }}>

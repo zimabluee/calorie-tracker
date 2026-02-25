@@ -1,3 +1,9 @@
+/**
+ * @component Dashboard
+ * @description The main UI for calorie tracking.
+ * Handles data fetching, visualization, and meal deletion.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode'; 
 import axios from 'axios';
@@ -24,8 +30,9 @@ const CalorieChart = ({ data }) => {
 };
 
 const Dashboard = ({ token }) => {
-  const [userEmail, setUserEmail] = useState('');
-  const [meals, setMeals] = useState([]);
+  // State Managment
+  const [userEmail, setUserEmail] = useState(''); // Decoded version
+  const [meals, setMeals] = useState([]); // List of meals for the specific date
   const [loading, setLoading] = useState(true);
   const [calorieGoal, setCalorieGoal] = useState(2000);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -61,11 +68,17 @@ const Dashboard = ({ token }) => {
     setIsEditingGoal(false);
   };
 
+  /**
+   * useEffect: Runs when the token or selectedDate changes.
+   * Decodes the JWT to display user and triggers a data request.
+   */
+
   useEffect(() => {
     const currentToken = token || localStorage.getItem('token');
     
     if (currentToken) {
       try {
+        // Decode payload to get email
         const decoded = jwtDecode(currentToken);
         setUserEmail(decoded.email || 'User'); 
       } catch (err) {
@@ -79,6 +92,10 @@ const Dashboard = ({ token }) => {
     name: meal.foodName.substring(0, 8),
     calories: meal.calories
   }));
+
+  /**
+   * Calorie Data Sum: Calculates the total calories logged for the day.
+   */
 
   const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
   const isOver = totalCalories > calorieGoal;
