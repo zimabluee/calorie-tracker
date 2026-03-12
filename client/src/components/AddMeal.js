@@ -3,24 +3,25 @@
  * @description The form used to log new meals.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import axios from 'axios';
 
 const AddMeal = ({ token, onMealAdded, selectedDate }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]); 
 
-  const performSearch = async (searchTerm) => {
+  // Wrap in useCallback
+  const performSearch = useCallback(async (searchTerm) => {
     try {
-      //Send the food detail and selected date
+      // Send the food detail and selected date
       const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/food/search/${searchTerm}`, {
-        headers: { 'x-auth-token': token }
+        headers: { 'Authorization': `Bearer ${token}` } // Updated to Bearer standard
       });
       setResults(res.data);
     } catch (err) {
       console.error("Search error", err);
     }
-  };
+  }, [token]); // token is the dependency
 
 useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,7 +33,7 @@ useEffect(() => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, performSearch]); // perform search is the now the stable dependency 
 
   const selectFood = async (food) => {
     try {
