@@ -84,10 +84,22 @@ const Dashboard = ({ token }) => {
     setIsEditingGoal(false);
   };
 
-  const chartData = meals.map((meal) => ({
-    name: meal.foodName.substring(0, 8),
-    calories: meal.calories
+  const getDailyTotals = (meals) => {
+  const totals = {};
+  
+  meals.forEach((meal) => {
+    // meal.date is in YYYY-MM-DD format
+    const date = meal.date.split('T')[0]; 
+    totals[date] = (totals[date] || 0) + meal.calories;
+  });
+
+  return Object.keys(totals).map((date) => ({
+    name: date, // The date
+    calories: totals[date] // The sum of calories for that day
   }));
+};
+
+  const chartData = getDailyTotals(meals);
 
   const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
   const isOver = totalCalories > calorieGoal;
