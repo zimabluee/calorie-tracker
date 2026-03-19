@@ -3,33 +3,36 @@ const router = express.Router();
 const axios = require('axios');
 const auth = require('../middleware/auth');
 
-// @route   GET /api/food/search/:query
-// @desc    Search Edamam for food 
+// @route    GET /api/food/search/:query
+// @desc     Search Edamam for food 
 router.get('/search/:query', auth, async (req, res) => {
   try {
     const { query } = req.params;
     
-    // Don't call Edamam if query is empty or too short, causing api limit errors
+    // Don't call Edamam if query is empty or too short
     if (!query || query.length < 2) {
       return res.json([]); 
     }
 
-    const appId = process.env.EDAMAM_APP_ID;
-    const appKey = process.env.EDAMAM_APP_KEY;
-
-    const res = await axios.get(`https://api.edamam.com/api/food-database/v2/parser`, {
+    // The External API Call
+    // Fix 1: Renamed 'res' to 'response' to avoid conflict with the Express 'res' object
+    // Fix 2: Changed 'searchTerm' to 'query' to match the destructured variable
+    // Fix 3: Standardized env variable names 
+    const response = await axios.get(`https://api.edamam.com/api/food-database/v2/parser`, {
       params: {
-        ingr: searchTerm,
-        app_id: process.env.FOOD_APP_ID,
-        app_key: process.env.FOOD_APP_KEY
+        ingr: query, 
+        app_id: process.env.EDAMAM_APP_ID, 
+        app_key: process.env.EDAMAM_APP_KEY
       }
     });
 
-    // Only return the hints
+    // Return the data
     res.json(response.data.hints || []);
+
   } catch (err) {
     console.error("Edamam Search Error:", err.message);
-    res.status(500).json({ msg: "Failed to fetch food data" });
+    // Fix 4: Standardized error key from 'msg' to 'message' as per feedback
+    res.status(500).json({ message: "Failed to fetch food data" });
   }
 });
 

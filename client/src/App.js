@@ -14,6 +14,18 @@ function App() {
   
   // Switch between Login and Register views
   const [showRegister, setShowRegister] = useState(false);
+  
+  // Logout handler
+  const logout = () => {
+    // 1. Clear state
+    setToken(null);
+    // 2. Explicitly clear localStorage (redundant but safer)
+    localStorage.removeItem('token');
+    // 3. Reset the view to Login (not Register)
+    setShowRegister(false);
+    // 4. Force a quick window reload to clear any sensitive data in memory
+    window.location.reload();
+  };
 
   // Sync if the token changes
   useEffect(() => {
@@ -23,11 +35,6 @@ function App() {
       localStorage.removeItem('token');
     }
   }, [token]);
-
-  // Logout handler
-  const logout = () => {
-    setToken(null);
-  };
 
   // 1. If the user is logged in, show the Dashboard
   if (token) {

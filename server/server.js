@@ -6,6 +6,7 @@ const app = express();
 
 const corsOptions = { 
   origin: ['https://vercel.com/zimabluees-projects/calorie-tracker/EDWX9NrtCFr4iHs5MdPvpQrKCBY7', 'http://localhost:3000'],
+  credentials: true, // Recommended for handling tokens/cookies
   optionsSuccessStatus: 200
 };
 
