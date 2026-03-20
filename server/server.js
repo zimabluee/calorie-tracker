@@ -1,4 +1,6 @@
 require('dotenv').config();
+const dns = require('node:dns/promises');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express'); 
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -20,7 +22,10 @@ app.use('/api/food', require('./routes/food'));
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 10000, // Wait 10 seconds
+  family: 4 // Force IPv4
+})
   .then(() => {
     console.log("------------------------------------------");
     console.log("✅ SUCCESS: Connected to MongoDB Atlas!");

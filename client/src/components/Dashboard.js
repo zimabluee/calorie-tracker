@@ -11,11 +11,13 @@ import AddMeal from './AddMeal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CalorieChart = ({ data }) => {
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) return (
+    <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>Add meals to see your trend!</div>
+  );
 
   return (
     <div style={{ width: '100%', height: '300px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Calorie Trend</h4>
+      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>DAily Calorie Trend</h4>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -60,7 +62,7 @@ const Dashboard = ({ token }) => {
   useEffect(() => {
     if (token) {
       try {
-        const decoded = jwtDecode(token);
+        const decoded = JSON.parse(atob(token.split('.')[1])); // Simple fallback if jwt-decode fails
         setUserEmail(decoded.email || 'User');
       } catch (err) {
         console.error("Token decoding failed:", err);
@@ -83,24 +85,26 @@ const Dashboard = ({ token }) => {
     setCalorieGoal(tempGoal);
     setIsEditingGoal(false);
   };
-
-  const getDailyTotals = (meals) => {
+  // FIX: Aggregate meals into daily totals and SORT them
+  const getDailyTotals = (mealsArray) => {
   const totals = {};
   
-  meals.forEach((meal) => {
+  mealsArray.forEach((meal) => {
     // meal.date is in YYYY-MM-DD format
-    const date = meal.date.split('T')[0]; 
-    totals[date] = (totals[date] || 0) + meal.calories;
+    const dateKey = meal.date.split('T')[0]; 
+    totals[dateKey] = (totals[dateKey] || 0) + meal.calories;
   });
-
-  return Object.keys(totals).map((date) => ({
-    name: date, // The date
-    calories: totals[date] // The sum of calories for that day
-  }));
-};
+  
+  // Sort by date so the chart line makes sense chronologically
+  return Object.keys(totals)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map((date) => ({
+        name: date,
+        calories: totals[date]
+      }));
+  };
 
   const chartData = getDailyTotals(meals);
-
   const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
   const isOver = totalCalories > calorieGoal;
 
@@ -116,12 +120,24 @@ const Dashboard = ({ token }) => {
 
       <div style={{ marginBottom: '20px', textAlign: 'center', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>View Date:</label>
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+        <input 
+          type="date" 
+          value={selectedDate} 
+          onChange={(e) => setSelectedDate(e.target.value)} 
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} 
+        />
       </div>
 
       <CalorieChart data={chartData} />
 
-      <div style={{ backgroundColor: isOver ? '#ffebee' : '#e8f5e9', padding: '20px', borderRadius: '12px', textAlign: 'center', border: `2px solid ${isOver ? '#ef5350' : '#66bb6a'}`, marginBottom: '20px' }}>
+      <div style={{ 
+        backgroundColor: isOver ? '#ffebee' : '#e8f5e9', 
+        padding: '20px', 
+        borderRadius: '12px', 
+        textAlign: 'center', 
+        border: `2px solid ${isOver ? '#ef5350' : '#66bb6a'}`, 
+        marginBottom: '20px' 
+      }}>
         {!isEditingGoal ? (
           <div onClick={() => setIsEditingGoal(true)} style={{ cursor: 'pointer' }}>
             <h2 style={{ margin: 0 }}>{totalCalories} / {calorieGoal} kcal</h2>
@@ -129,7 +145,12 @@ const Dashboard = ({ token }) => {
           </div>
         ) : (
           <div>
-            <input type="number" value={tempGoal} onChange={(e) => setTempGoal(e.target.value)} style={{ width: '80px' }} />
+            <input 
+              type="number" 
+              value={tempGoal} 
+              onChange={(e) => setTempGoal(Number(e.target.value))} 
+              style={{ width: '80px' }} 
+            />
             <button onClick={saveGoal} style={{ marginLeft: '10px' }}>Save</button>
           </div>
         )}
@@ -138,7 +159,7 @@ const Dashboard = ({ token }) => {
       <h3 style={{ borderBottom: '2px solid #333' }}>Add Food</h3>
       <AddMeal token={token} onMealAdded={fetchMeals} selectedDate={selectedDate} />
 
-      <h3 style={{ marginTop: '30px' }}>Log</h3>
+      <h3 style={{ marginTop: '30px' }}>Log for {selectedDate}</h3>
       <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
         {meals.length > 0 ? (
           meals.map(meal => (
@@ -148,11 +169,16 @@ const Dashboard = ({ token }) => {
                 <br />
                 <small style={{ color: '#888' }}>{meal.calories} kcal</small>
               </div>
-              <button onClick={() => deleteMeal(meal._id)} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer' }}>Delete</button>
+              <button 
+                onClick={() => deleteMeal(meal._id)} 
+                style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer' }}
+              >
+                Delete
+              </button>
             </div>
           ))
         ) : (
-          <p style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No meals logged.</p>
+          <p style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No meals logged for this day.</p>
         )}
       </div>
     </div>
