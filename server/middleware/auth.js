@@ -13,7 +13,13 @@ module.exports = function(req, res, next) {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = 
+    req.header('x-auth-token') || 
+    req.header('Authorization')?.split(' ')[1]; // This looks for "Bearer <token>"
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token, authorization denied' });
+  }
 
   try {
     //3. Verify token 
