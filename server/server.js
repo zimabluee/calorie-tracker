@@ -7,14 +7,15 @@ const cors = require('cors');
 const app = express();
 
 const corsOptions = { 
-  origin: ['https://calorie-tracker-two-taupe.vercel.app/', 'http://localhost:3000'],
+  origin: ['https://calorie-tracker-two-taupe.vercel.app', 'http://localhost:3000'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // Recommended for handling tokens/cookies
   optionsSuccessStatus: 200
 };
 
-app.use(cors(corsOptions));      
 app.use(express.json()); 
+app.use(cors(corsOptions));      
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
