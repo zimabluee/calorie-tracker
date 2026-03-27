@@ -64,6 +64,40 @@ const fetchMeals = useCallback(async () => {
     }
   }, [token, selectedDate]);
 
+  // Delete Meal Function (FIX: Re-added)
+  const deleteMeal = async (id) => {
+    try {
+      await axios.delete(`https://calorie-tracker-a0im.onrender.com/api/meals/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      fetchMeals();
+    } catch (err) {
+      alert("Error deleting meal");
+    }
+  };
+
+  // Save Goal Function (FIX: Re-added)
+  const saveGoal = () => {
+    setCalorieGoal(tempGoal);
+    setIsEditingGoal(false);
+  };
+
+  // Effects (FIX: Re-added)
+  useEffect(() => {
+    fetchMeals();
+  }, [fetchMeals]);
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setUserEmail(decoded.email || 'User');
+      } catch (err) {
+        console.error("Token decoding failed:", err);
+      }
+    }
+  }, [token]);
+
   // FIX: Aggregate meals into daily totals and SORT them
   const getDailyTotals = (mealsArray) => {
     const totals = {};
