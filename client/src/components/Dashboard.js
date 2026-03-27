@@ -186,8 +186,10 @@ const fetchMeals = useCallback(async () => {
 
       <h3 style={{ marginTop: '30px' }}>Log for {selectedDate}</h3>
       <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-        {meals.length > 0 ? (
-          meals.map(meal => (
+        {meals.filter(meal => meal.date.split('T')[0] === selectedDate).length > 0 ? (
+          meals
+            .filter(meal => meal.date.split('T')[0] === selectedDate) // FIX: Only show meals for the viewed date
+            .map(meal => (
             <div key={meal._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', borderBottom: '1px solid #eee' }}>
               <div>
                 <span style={{ fontWeight: '500' }}>{meal.foodName}</span>
