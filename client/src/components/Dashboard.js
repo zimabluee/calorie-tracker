@@ -17,7 +17,7 @@ const CalorieChart = ({ data }) => {
 
   return (
     <div style={{ width: '100%', height: '300px', marginBottom: '30px', backgroundColor: '#fff', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>DAily Calorie Trend</h4>
+      <h4 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Daily Calorie Trend</h4>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -41,11 +41,21 @@ const Dashboard = ({ token }) => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Memoized fetch function to satisfy ESLint build requirements
-  const fetchMeals = useCallback(async () => {
+const fetchMeals = useCallback(async () => {
     try {
-      const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/meals?date=${selectedDate}`, {
-        headers: { 'Authorization': `Bearer ${token}` } // Updated to Bearer standard
-      });
+      // 1. Calculate the start date (7 days before the selected date)
+      const end = new Date(selectedDate);
+      const start = new Date(selectedDate);
+      start.setDate(start.getDate() - 6); // Total of 7 days including selectedDate
+
+      const startDateStr = start.toISOString().split('T')[0];
+      const endDateStr = end.toISOString().split('T')[0];
+
+      // 2. Pass BOTH dates to the API
+      const res = await axios.get(
+        `https://calorie-tracker-a0im.onrender.com/api/meals?startDate=${startDateStr}&endDate=${endDateStr}`, 
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
       setMeals(res.data);
       setLoading(false);
     } catch (err) {
@@ -54,58 +64,39 @@ const Dashboard = ({ token }) => {
     }
   }, [token, selectedDate]);
 
-  // Trigger fetch when dependencies change
-  useEffect(() => {
-    fetchMeals();
-  }, [fetchMeals]);
-
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split('.')[1])); // Simple fallback if jwt-decode fails
-        setUserEmail(decoded.email || 'User');
-      } catch (err) {
-        console.error("Token decoding failed:", err);
-      }
-    }
-  }, [token]);
-
-  const deleteMeal = async (id) => {
-    try {
-      await axios.delete(`https://calorie-tracker-a0im.onrender.com/api/meals/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchMeals();
-    } catch (err) {
-      alert(err.response?.data?.message || "Error deleting meal");
-    }
-  };
-
-  const saveGoal = () => {
-    setCalorieGoal(tempGoal);
-    setIsEditingGoal(false);
-  };
   // FIX: Aggregate meals into daily totals and SORT them
   const getDailyTotals = (mealsArray) => {
-  const totals = {};
-  
-  mealsArray.forEach((meal) => {
-    // meal.date is in YYYY-MM-DD format
-    const dateKey = meal.date.split('T')[0]; 
-    totals[dateKey] = (totals[dateKey] || 0) + meal.calories;
-  });
-  
-  // Sort by date so the chart line makes sense chronologically
-  return Object.keys(totals)
-      .sort((a, b) => new Date(a) - new Date(b))
-      .map((date) => ({
-        name: date,
-        calories: totals[date]
-      }));
+    const totals = {};
+    
+    // Pre-fill the last 7 days with 0
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(selectedDate);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      totals[dateStr] = 0;
+    }
+
+    // Add actual meal calories
+    mealsArray.forEach((meal) => {
+       // meal.date is in YYYY-MM-DD format
+      const dateKey = meal.date.split('T')[0];
+      if (totals.hasOwnProperty(dateKey)) {
+        totals[dateKey] += meal.calories;
+      }
+    });
+
+    // Sort by date so the chart line makes sense chronologically
+    return Object.keys(totals).sort().map(date => ({
+      name: date.split('-').slice(1).join('/'), // Format as MM/DD for the chart
+      calories: totals[date]
+    }));
   };
 
   const chartData = getDailyTotals(meals);
-  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
+  // Filter the meals array to only sum calories for the specific selectedDate
+  const totalCalories = meals
+    .filter(meal => meal.date.split('T')[0] === selectedDate)
+    .reduce((sum, meal) => sum + meal.calories, 0);
   const isOver = totalCalories > calorieGoal;
 
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>;

@@ -1,6 +1,6 @@
 /**
- * @route   DELETE /api/meals/:id
- * @description    Delete a specific meal entry
+ * @route   READ, UPDATE, DELETE /api/meals/:id
+ * @description    Browse, update, or delete meal.
  */
 
 const express = require('express');
@@ -31,14 +31,27 @@ router.post('/', auth, async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
   try {
-    const { date } = req.query; 
+    const { startDate, endDate, date } = req.query; 
     let query = { user: req.user.id };
 
-    if (date) {
-      // Check if the string is a valid date
+    // Range Query Logic
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ message: "Invalid date range format" });
+      }
+
+      start.setUTCHours(0, 0, 0, 0);
+      end.setUTCHours(23, 59, 59, 999);
+      query.date = { $gte: start, $lte: end };
+    } 
+    // Single Date Logic (Default)
+    else if (date) {
       const parsedDate = new Date(date);
       if (isNaN(parsedDate.getTime())) {
-        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+        return res.status(400).json({ message: "Invalid date format" });
       }
       const start = new Date(parsedDate);
       start.setUTCHours(0, 0, 0, 0);
@@ -47,7 +60,8 @@ router.get('/', auth, async (req, res) => {
       query.date = { $gte: start, $lte: end };
     }
 
-    const meals = await Meal.find(query).sort({ date: -1 });
+    // Sort ascending so the chart draws from past to present
+    const meals = await Meal.find(query).sort({ date: 1 });
     res.json(meals);
   } catch (err) {
     console.error(err.message);
