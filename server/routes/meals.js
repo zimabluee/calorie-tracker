@@ -33,17 +33,25 @@ router.get('/', auth, async (req, res) => {
   try {
     const { date } = req.query; 
     let query = { user: req.user.id };
+
     if (date) {
-      const start = new Date(date);
+      // Check if the string is a valid date
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+      }
+      const start = new Date(parsedDate);
       start.setUTCHours(0, 0, 0, 0);
-      const end = new Date(date);
+      const end = new Date(parsedDate);
       end.setUTCHours(23, 59, 59, 999);
       query.date = { $gte: start, $lte: end };
     }
+
     const meals = await Meal.find(query).sort({ date: -1 });
     res.json(meals);
   } catch (err) {
-    res.status(500).send('Server Error');
+    console.error(err.message);
+    res.status(500).json({ message: 'Server Error' });
   }
 });
 

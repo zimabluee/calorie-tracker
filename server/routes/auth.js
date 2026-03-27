@@ -50,6 +50,11 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Enforce a minimum password length of 6 characters
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid Credentials' });
