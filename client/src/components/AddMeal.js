@@ -15,7 +15,7 @@ const AddMeal = ({ token, onMealAdded, selectedDate }) => {
     try {
       // Send the food detail and selected date
       const res = await axios.get(`https://calorie-tracker-a0im.onrender.com/api/food/search/${searchTerm}`, {
-        headers: { 'Authorization': `Bearer ${token}` } // Updated to Bearer standard
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } // Updated to Bearer standard
       });
       setResults(res.data);
     } catch (err) {
